@@ -1,0 +1,21 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - lightdashApiKey
+    properties:
+      lightdashApiKey:
+        type: string
+        description: The API key for accessing the Lightdash API.
+      lightdashApiUrl:
+        type: string
+        default: https://app.lightdash.cloud/api/v1
+        description: The base URL for the Lightdash API.
+  commandFunction:
+    # A function that produces the CLI command to start the MCP on stdio.
+    |-
+    config => ({ command: 'npx', args: ['lightdash-mcp-server'], env: { LIGHTDASH_API_KEY: config.lightdashApiKey, LIGHTDASH_API_URL: config.lightdashApiUrl } })

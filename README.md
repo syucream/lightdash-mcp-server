@@ -1,4 +1,5 @@
 # lightdash-mcp-server
+[![smithery badge](https://smithery.ai/badge/@syucream/lightdash-mcp-server)](https://smithery.ai/server/@syucream/lightdash-mcp-server)
 
 A [MCP(Model Context Protocol)](https://www.anthropic.com/news/model-context-protocol) server that accesses to [Lightdash](https://www.lightdash.com/).
 
@@ -23,6 +24,15 @@ Available tools:
 
 ### Installation
 
+#### Installing via Smithery
+
+To install Lightdash MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@syucream/lightdash-mcp-server):
+
+```bash
+npx -y @smithery/cli install @syucream/lightdash-mcp-server --client claude
+```
+
+#### Manual Installation
 ```bash
 npm install lightdash-mcp-server
 ```
