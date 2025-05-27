@@ -6,6 +6,8 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { StreamableHttpServerTransport } from '@modelcontextprotocol/sdk/server/streamable-http.js';
+import { parseArgs } from 'node:util';
 import { createLightdashClient } from 'lightdash-client-typescript-fetch';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import {
@@ -438,13 +440,36 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
-async function runServer() {
+async function startStdioServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('Lightdash MCP Server running on stdio');
 }
 
-runServer().catch((error) => {
+async function startHttpServer(port: number) {
+  const transport = new StreamableHttpServerTransport({ port });
+  await server.connect(transport);
+  console.error(`Lightdash MCP Server running on http://localhost:${port}`);
+}
+
+async function main() {
+  const { values } = parseArgs({ options: { port: { type: 'string' } } });
+  const portValue = values.port;
+
+  if (typeof portValue === 'string') {
+    const port = parseInt(portValue, 10);
+    if (Number.isNaN(port) || port < 1024 || port > 65535) {
+      throw new Error(
+        `Invalid port: ${portValue} (must be between 1024 and 65535)`
+      );
+    }
+    await startHttpServer(port);
+  } else {
+    await startStdioServer();
+  }
+}
+
+main().catch((error) => {
   console.error('Fatal error in main():', error);
   process.exit(1);
 });
