@@ -6,6 +6,9 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import express from 'express';
+import { parseArgs } from 'node:util';
 import { createLightdashClient } from 'lightdash-client-typescript-fetch';
 import { zodToJsonSchema } from 'zod-to-json-schema';
 import {
@@ -438,13 +441,57 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 });
 
-async function runServer() {
+async function startStdioServer() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error('Lightdash MCP Server running on stdio');
 }
 
-runServer().catch((error) => {
+async function startHttpServer(port: number) {
+  const app = express();
+  app.use(express.json({ limit: '4mb' }));
+
+  let transport: SSEServerTransport | undefined;
+
+  app.get('/sse', async (_req, res) => {
+    transport = new SSEServerTransport('/message', res);
+    await server.connect(transport);
+    console.error(
+      `Lightdash MCP Server new SSE connection ${transport.sessionId}`
+    );
+  });
+
+  app.post('/message', async (req, res) => {
+    if (!transport) {
+      res.status(404).send('Session not initialized');
+      return;
+    }
+    await transport.handlePostMessage(req, res, req.body);
+  });
+
+  app.listen(port, () => {
+    console.error(
+      `Lightdash MCP Server running on http://localhost:${port}/sse`
+    );
+  });
+}
+
+async function main() {
+  const { values } = parseArgs({ options: { port: { type: 'string' } } });
+  const portValue = values.port;
+
+  if (typeof portValue === 'string') {
+    const port = parseInt(portValue, 10);
+    if (Number.isNaN(port)) {
+      throw new Error(`Invalid port: ${portValue}`);
+    }
+    await startHttpServer(port);
+  } else {
+    await startStdioServer();
+  }
+}
+
+main().catch((error) => {
   console.error('Fatal error in main():', error);
   process.exit(1);
 });

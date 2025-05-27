@@ -55,6 +55,12 @@ Directly:
 ```bash
 npx lightdash-mcp-server
 ```
+Specify a port with `--port` to expose a streamable HTTP endpoint instead of
+stdio:
+
+```bash
+npx lightdash-mcp-server --port 3000
+```
 Or, run the installed module with node.
 
 2. Edit your MCP configuration json:
