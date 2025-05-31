@@ -1,8 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { config } from 'dotenv';
-import { CallToolResultSchema } from '@modelcontextprotocol/sdk/types.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 
 // Load environment variables from .env file
 config();
@@ -43,11 +41,9 @@ async function main() {
   try {
     // Connect to the server
     await client.connect(transport);
-    console.log('Connected to MCP server via HTTP');
 
     // List available tools
-    const toolsResponse = await client.listTools();
-    console.log('Available tools:', toolsResponse.tools.length, 'tools found');
+    await client.listTools();
 
     // Call list_spaces with a project UUID
     const projectUuid = process.env.EXAMPLES_CLIENT_LIGHTDASH_PROJECT_UUID;
@@ -57,28 +53,12 @@ async function main() {
       );
     }
 
-    console.log(`Fetching spaces for project: ${projectUuid}`);
-    const response = (await client.callTool(
-      {
-        name: 'lightdash_list_spaces',
-        arguments: {
-          projectUuid,
-        },
+    await client.callTool({
+      name: 'lightdash_list_spaces',
+      arguments: {
+        projectUuid,
       },
-      CallToolResultSchema
-    )) as CallToolResult;
-
-    if (
-      Array.isArray(response.content) &&
-      response.content[0]?.type === 'text'
-    ) {
-      console.log('Spaces:', response.content[0].text);
-    } else {
-      console.error('Unexpected response format');
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    process.exit(1);
+    });
   } finally {
     // Close the connection
     await transport.close();

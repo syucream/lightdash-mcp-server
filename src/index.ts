@@ -29,7 +29,6 @@ if (portIndex !== -1 && args.length > portIndex + 1) {
 }
 
 if (httpPort !== null) {
-  console.log(`[INFO] Starting HTTP mode on port: ${httpPort}`);
   const httpTransport = new StreamableHTTPServerTransport({
     sessionIdGenerator: () => crypto.randomUUID(),
     enableJsonResponse: true,
@@ -42,7 +41,6 @@ if (httpPort !== null) {
   );
   await new Promise<void>(() => {}); // Keep process alive
 } else {
-  console.log('[INFO] No -port argument found, starting Stdio mode.');
   const stdioTransport = new StdioServerTransport();
   server.connect(stdioTransport);
 }
